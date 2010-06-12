@@ -48,18 +48,25 @@ class TestChannels(TestBase):
 		# test callback channels
 		wc, rc = mkchannel(wtype = CallbackChannelWriter, rtype = CallbackChannelReader)
 		
-		cb = [0, 0]		# set slots to one if called
+		cb = [0, 0, 0]		# set slots to one if called
 		def pre_write(item):
 			cb[0] = 1
 			return item + 1
 		def pre_read(count):
 			cb[1] = 1
+		def post_read(items):
+			assert isinstance(items, list)
+			cb[2] = 1
+			return [ i+1 for i in items]
+			
 			
 		# set, verify it returns previous one
 		assert wc.set_pre_cb(pre_write) is None
 		assert rc.set_pre_cb(pre_read) is None
+		assert rc.set_post_cb(post_read) is None
 		assert wc.set_pre_cb(pre_write) is pre_write
 		assert rc.set_pre_cb(pre_read) is pre_read
+		assert rc.set_post_cb(post_read) is post_read
 		
 		# writer transforms input
 		val = 5
@@ -67,9 +74,8 @@ class TestChannels(TestBase):
 		assert cb[0] == 1 and cb[1] == 0
 		
 		rval = rc.read(1)[0]		# read one item, must not block
-		assert cb[0] == 1 and cb[1] == 1
-		assert rval == val + 1
-		
+		assert cb[0] == 1 and cb[1] == 1 and cb[2] == 1
+		assert rval == val + 1 + 1
 		
 		
 		# ITERATOR READER
@@ -82,6 +88,11 @@ class TestChannels(TestBase):
 		
 		# doesn't work if item is not an iterator
 		self.failUnlessRaises(ValueError, IteratorReader, list())
+		
+		
+		# test general read-iteration - its supported by all readers
+		reader = IteratorReader(iter(range(10)))
+		assert len(list(reader)) == 10
 		
 		# NOTE: its thread-safety is tested by the pool 
 		

@@ -52,7 +52,7 @@ class Task(Node):
 		self._wlock = threading.Lock()
 		self.fun = fun
 		self.min_count = None
-		self.max_chunksize = 0				# note set
+		self.max_chunksize = 0				# not set
 		self.apply_single = apply_single
 	
 	def is_done(self):

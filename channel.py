@@ -142,7 +142,24 @@ class Reader(object):
 	#{ Interface
 	def __init__(self, device):
 		"""Initialize the instance with the device to read from"""
+	
+	#{ Iterator protocol
+	
+	def __iter__(self):
+		return self
+
+	def next(self):
+		"""Implements the iterator protocol, iterating individual items"""
+		items = self.read(1)
+		if items:
+			return items[0]
+		raise StopIteration
 		
+	#} END iterator protocol
+		
+		
+	#{ Interface
+	
 	def read(self, count=0, block=True, timeout=None):
 		"""read a list of items read from the device. The list, as a sequence
 		of items, is similar to the string of characters returned when reading from 
@@ -159,6 +176,8 @@ class Reader(object):
 			If count was < 1, a list with all items that could be read will be 
 			returned."""
 		raise NotImplementedError()
+		
+	#} END interface
 		
 
 class ChannelReader(Reader):
@@ -253,6 +272,7 @@ class CallbackReaderMixin(object):
 	def __init__(self, *args):
 		super(CallbackReaderMixin, self).__init__(*args)
 		self._pre_cb = None
+		self._post_cb = None
 	
 	def set_pre_cb(self, fun = lambda count: None):
 		"""Install a callback to call with the item count to be read before any 
@@ -264,11 +284,26 @@ class CallbackReaderMixin(object):
 		prev = self._pre_cb
 		self._pre_cb = fun
 		return prev
+		
+	def set_post_cb(self, fun = lambda items: items):
+		"""Install a callback to call after items have been read, but before 
+		they are returned to the caller. The callback may adjust the items and/or
+		the list
+		If no function is provided, the callback is uninstalled
+		:return: the previously installed function"""
+		prev = self._post_cb
+		self._post_cb = fun
+		return prev
 	
 	def read(self, count=0, block=True, timeout=None):
 		if self._pre_cb:
 			self._pre_cb(count)
-		return super(CallbackReaderMixin, self).read(count, block, timeout)
+		items = super(CallbackReaderMixin, self).read(count, block, timeout)
+		
+		if self._post_cb:
+			items = self._post_cb(items)
+		return items
+		
 		
 		
 class CallbackChannelReader(CallbackReaderMixin, ChannelReader):

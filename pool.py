@@ -71,11 +71,8 @@ class PoolReader(CallbackChannelReader):
 	#{ Internal
 	def _read(self, count=0, block=True, timeout=None):
 		return CallbackChannelReader.read(self, count, block, timeout)
-	
-	#} END internal
-
-	#{ Interface
-	
+		
+		
 	def pool_ref(self):
 		""":return: reference to the pool we belong to"""
 		return self._pool_ref
@@ -83,6 +80,27 @@ class PoolReader(CallbackChannelReader):
 	def task_ref(self):
 		""":return: reference to the task producing our items"""
 		return self._task_ref
+	
+	#} END internal
+
+	#{ Interface
+	
+	def task(self):
+		""":return: task we read from
+		:raise ValueError: If the instance is not attached to at task"""
+		task = self._task_ref()
+		if task is None:
+			raise ValueError("PoolReader is not associated with at task anymore")
+		return task
+		
+	def pool(self):
+		""":return: pool our task belongs to
+		:raise ValueError: if the instance does not belong to a pool"""
+		pool = self._pool_ref()
+		if pool is None:
+			raise ValueError("PoolReader is not associated with a pool anymore")
+		return pool
+		
 	
 	#} END interface 
 	

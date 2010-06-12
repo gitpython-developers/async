@@ -413,6 +413,12 @@ class TestThreadPool(TestBase):
 		urc2 = p.add_task(t2)
 		assert p.num_tasks() == 2
 		
+		# test pool reader
+		assert urc1.pool_ref()() is p
+		assert urc1.task_ref()() is t1
+		assert urc1.pool() == p
+		assert urc1.task() == t1
+		
 		## SINGLE TASK #################
 		self._assert_single_task(p, False)
 		assert p.num_tasks() == 2
