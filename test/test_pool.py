@@ -1,10 +1,10 @@
 """Channel testing"""
-from test.testlib import *
+from lib import *
 from task import *
 
-from git.async.pool import *
-from git.async.thread import terminate_threads
-from git.async.util import cpu_count
+from async.pool import *
+from async.thread import terminate_threads
+from async.util import cpu_count
 
 import threading
 import weakref

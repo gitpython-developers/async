@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Test thead classes and functions"""
-from test.testlib import *
-from git.async.thread import *
+from lib import *
+from async.thread import *
 from Queue import Queue
 import time
 
@@ -25,7 +25,7 @@ class TestWorker(WorkerThread):
 		self.arg = None
 		
 
-class TestThreads( TestCase ):
+class TestThreads(TestBase):
 	
 	@terminate_threads
 	def test_worker_thread(self):

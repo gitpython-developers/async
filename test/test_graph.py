@@ -1,6 +1,6 @@
 """Channel testing"""
-from test.testlib import *
-from git.async.graph import *
+from lib import *
+from async.graph import *
 
 import time
 import sys

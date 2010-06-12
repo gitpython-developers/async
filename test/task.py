@@ -1,5 +1,5 @@
 """Module containing task implementations useful for testing them"""
-from git.async.task import *
+from async.task import *
 
 import threading
 import weakref
