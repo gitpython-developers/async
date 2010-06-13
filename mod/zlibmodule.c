@@ -23,24 +23,26 @@
    there was an de/compress object-specific lock.  However, for the
    moment the ENTER_ZLIB and LEAVE_ZLIB calls are global for ALL
    de/compress objects.
+   
+   S.T.
+   And this is exactly what we do, have one lock per object. This should allow
+   multi-threaded compression and decompression
  */
-
-static PyThread_type_lock zlib_lock = NULL; /* initialized on module load */
 
 #define ENTER_ZLIB \
 	Py_BEGIN_ALLOW_THREADS \
-	PyThread_acquire_lock(zlib_lock, 1); \
+	PyThread_acquire_lock(self->zlib_lock, 1); \
 	Py_END_ALLOW_THREADS
 
 #define LEAVE_ZLIB \
-	PyThread_release_lock(zlib_lock);
+	PyThread_release_lock(self->zlib_lock);
 
 #else
 
 #define ENTER_ZLIB
 #define LEAVE_ZLIB
 
-#endif
+#endif	/* WITH THREAD */
 
 /* The following parameters are copied from zutil.h, version 0.95 */
 #define DEFLATED   8
@@ -67,6 +69,10 @@ typedef struct
     PyObject *unused_data;
     PyObject *unconsumed_tail;
     int is_initialised;
+    
+#ifdef WITH_THREAD
+    PyThread_type_lock zlib_lock;
+#endif
 } compobject;
 
 static void
@@ -106,6 +112,10 @@ newcompobject(PyTypeObject *type)
 	Py_DECREF(self);
 	return NULL;
     }
+    
+#ifdef WITH_THREAD
+    self->zlib_lock = PyThread_allocate_lock();
+#endif /* WITH_THREAD */
     return self;
 }
 
@@ -368,6 +378,11 @@ Comp_dealloc(compobject *self)
 	deflateEnd(&self->zst);
     Py_XDECREF(self->unused_data);
     Py_XDECREF(self->unconsumed_tail);
+    
+#ifdef WITH_THREAD
+    PyThread_free_lock(self->zlib_lock);
+#endif /* WITH_THREAD */
+
     PyObject_Del(self);
 }
 
@@ -378,6 +393,11 @@ Decomp_dealloc(compobject *self)
 	inflateEnd(&self->zst);
     Py_XDECREF(self->unused_data);
     Py_XDECREF(self->unconsumed_tail);
+    
+#ifdef WITH_THREAD
+    PyThread_free_lock(self->zlib_lock);
+#endif /* WITH_THREAD */
+    
     PyObject_Del(self);
 }
 
@@ -1032,8 +1052,4 @@ PyInit_zlib(void)
 	PyModule_AddObject(m, "ZLIB_VERSION", ver);
 
     PyModule_AddStringConstant(m, "__version__", "1.0");
-
-#ifdef WITH_THREAD
-    zlib_lock = PyThread_allocate_lock();
-#endif /* WITH_THREAD */
 }
