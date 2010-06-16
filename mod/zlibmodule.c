@@ -68,6 +68,7 @@ typedef struct
     z_stream zst;
     PyObject *unused_data;
     PyObject *unconsumed_tail;
+    PyObject *status;
     int is_initialised;
     
 #ifdef WITH_THREAD
@@ -100,18 +101,19 @@ newcompobject(PyTypeObject *type)
     compobject *self;
     self = PyObject_New(compobject, type);
     if (self == NULL)
-	return NULL;
+		return NULL;
     self->is_initialised = 0;
     self->unused_data = PyString_FromString("");
     if (self->unused_data == NULL) {
-	Py_DECREF(self);
-	return NULL;
+		Py_DECREF(self);
+		return NULL;
     }
     self->unconsumed_tail = PyString_FromString("");
     if (self->unconsumed_tail == NULL) {
-	Py_DECREF(self);
-	return NULL;
+		Py_DECREF(self);
+		return NULL;
     }
+    self->status = PyLong_FromLong(~0);
     
 #ifdef WITH_THREAD
     self->zlib_lock = PyThread_allocate_lock();
@@ -378,6 +380,7 @@ Comp_dealloc(compobject *self)
 	deflateEnd(&self->zst);
     Py_XDECREF(self->unused_data);
     Py_XDECREF(self->unconsumed_tail);
+    Py_XDECREF(self->status);
     
 #ifdef WITH_THREAD
     PyThread_free_lock(self->zlib_lock);
@@ -393,6 +396,7 @@ Decomp_dealloc(compobject *self)
 	inflateEnd(&self->zst);
     Py_XDECREF(self->unused_data);
     Py_XDECREF(self->unconsumed_tail);
+    Py_XDECREF(self->status);
     
 #ifdef WITH_THREAD
     PyThread_free_lock(self->zlib_lock);
@@ -438,27 +442,32 @@ PyZlib_objcompress(compobject *self, PyObject *args)
     /* while Z_OK and the output buffer is full, there might be more output,
        so extend the output buffer and try again */
     while (err == Z_OK && self->zst.avail_out == 0) {
-	if (_PyString_Resize(&RetVal, length << 1) < 0)
-	    goto error;
-	self->zst.next_out = (unsigned char *)PyString_AS_STRING(RetVal) \
-	    + length;
-	self->zst.avail_out = length;
-	length = length << 1;
-
-	Py_BEGIN_ALLOW_THREADS
-	err = deflate(&(self->zst), Z_NO_FLUSH);
-	Py_END_ALLOW_THREADS
+		if (_PyString_Resize(&RetVal, length << 1) < 0)
+			goto error;
+		self->zst.next_out = (unsigned char *)PyString_AS_STRING(RetVal) \
+			+ length;
+		self->zst.avail_out = length;
+		length = length << 1;
+	
+		Py_BEGIN_ALLOW_THREADS
+		err = deflate(&(self->zst), Z_NO_FLUSH);
+		Py_END_ALLOW_THREADS
     }
+    
+    // Set status
+    Py_DECREF(self->status);
+    self->status = PyLong_FromLong(err);
+    
     /* We will only get Z_BUF_ERROR if the output buffer was full but
        there wasn't more output when we tried again, so it is not an error
        condition.
     */
 
     if (err != Z_OK && err != Z_BUF_ERROR) {
-	zlib_error(self->zst, err, "while compressing");
-	Py_DECREF(RetVal);
-	RetVal = NULL;
-	goto error;
+		zlib_error(self->zst, err, "while compressing");
+		Py_DECREF(RetVal);
+		RetVal = NULL;
+		goto error;
     }
     _PyString_Resize(&RetVal, self->zst.total_out - start_total_out);
 
@@ -541,6 +550,10 @@ PyZlib_objdecompress(compobject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
     }
 
+    // Set status
+    Py_DECREF(self->status);
+    self->status = PyLong_FromLong(err);
+    
     /* Not all of the compressed data could be accommodated in the output buffer
        of specified size. Return the unconsumed tail in an attribute.*/
     if(max_length) {
@@ -640,6 +653,10 @@ PyZlib_flush(compobject *self, PyObject *args)
 	err = deflate(&(self->zst), flushmode);
 	Py_END_ALLOW_THREADS
     }
+    
+    // update final status
+    Py_DECREF(self->status);
+    self->status = PyLong_FromLong(err);
 
     /* If flushmode is Z_FINISH, we also have to call deflateEnd() to free
        various data structures. Note we should only get Z_STREAM_END when
@@ -709,10 +726,13 @@ PyZlib_copy(compobject *self)
 
     Py_INCREF(self->unused_data);
     Py_INCREF(self->unconsumed_tail);
+    Py_INCREF(self->status);
     Py_XDECREF(retval->unused_data);
     Py_XDECREF(retval->unconsumed_tail);
+    Py_XDECREF(retval->status);
     retval->unused_data = self->unused_data;
     retval->unconsumed_tail = self->unconsumed_tail;
+    retval->status = self->status;
 
     /* Mark it as being initialized */
     retval->is_initialised = 1;
@@ -760,10 +780,13 @@ PyZlib_uncopy(compobject *self)
 
     Py_INCREF(self->unused_data);
     Py_INCREF(self->unconsumed_tail);
+    Py_INCREF(self->status);
     Py_XDECREF(retval->unused_data);
     Py_XDECREF(retval->unconsumed_tail);
+    Py_XDECREF(retval->status);
     retval->unused_data = self->unused_data;
     retval->unconsumed_tail = self->unconsumed_tail;
+    retval->status = self->status;
 
     /* Mark it as being initialized */
     retval->is_initialised = 1;
@@ -877,10 +900,20 @@ static PyMethodDef Decomp_methods[] =
 static PyObject *
 Comp_getattr(compobject *self, char *name)
 {
-  /* No ENTER/LEAVE_ZLIB is necessary because this fn doesn't touch
-     internal data. */
+	PyObject * retval;
 
-  return Py_FindMethod(comp_methods, (PyObject *)self, name);
+    ENTER_ZLIB
+
+	if (strcmp(name, "status") == 0) {
+		Py_INCREF(self->status);
+		retval = self->status;
+    } else {
+		retval = Py_FindMethod(comp_methods, (PyObject *)self, name);
+	}
+
+    LEAVE_ZLIB
+
+    return retval;
 }
 
 static PyObject *
@@ -891,13 +924,17 @@ Decomp_getattr(compobject *self, char *name)
     ENTER_ZLIB
 
     if (strcmp(name, "unused_data") == 0) {
-	Py_INCREF(self->unused_data);
-	retval = self->unused_data;
+		Py_INCREF(self->unused_data);
+		retval = self->unused_data;
     } else if (strcmp(name, "unconsumed_tail") == 0) {
-	Py_INCREF(self->unconsumed_tail);
-	retval = self->unconsumed_tail;
-    } else
-	retval = Py_FindMethod(Decomp_methods, (PyObject *)self, name);
+		Py_INCREF(self->unconsumed_tail);
+		retval = self->unconsumed_tail;
+	} else if (strcmp(name, "status") == 0) {
+		Py_INCREF(self->status);
+		retval = self->status;
+    } else {
+		retval = Py_FindMethod(Decomp_methods, (PyObject *)self, name);
+	}
 
     LEAVE_ZLIB
 
@@ -1046,6 +1083,18 @@ PyInit_zlib(void)
     PyModule_AddIntConstant(m, "Z_NO_FLUSH", Z_NO_FLUSH);
     PyModule_AddIntConstant(m, "Z_SYNC_FLUSH", Z_SYNC_FLUSH);
     PyModule_AddIntConstant(m, "Z_FULL_FLUSH", Z_FULL_FLUSH);
+
+	// error codes    
+	PyModule_AddIntConstant(m, "Z_STATUS_UNSET", ~0);
+	PyModule_AddIntConstant(m, "Z_OK", Z_OK);
+	PyModule_AddIntConstant(m, "Z_STREAM_END", Z_STREAM_END);
+	PyModule_AddIntConstant(m, "Z_NEED_DICT", Z_NEED_DICT);
+	PyModule_AddIntConstant(m, "Z_ERRNO", Z_ERRNO);
+	PyModule_AddIntConstant(m, "Z_STREAM_ERROR", Z_STREAM_ERROR);
+	PyModule_AddIntConstant(m, "Z_DATA_ERROR", Z_DATA_ERROR);
+	PyModule_AddIntConstant(m, "Z_MEM_ERROR", Z_MEM_ERROR);
+	PyModule_AddIntConstant(m, "Z_BUF_ERROR", Z_BUF_ERROR);
+	PyModule_AddIntConstant(m, "Z_VERSION_ERROR", Z_VERSION_ERROR);
 
     ver = PyString_FromString(ZLIB_VERSION);
     if (ver != NULL)
