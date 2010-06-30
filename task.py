@@ -196,8 +196,10 @@ class IteratorTaskBase(Task):
 	def __init__(self, iterator, *args, **kwargs):
 		Task.__init__(self, *args, **kwargs)
 		self._read = IteratorReader(iterator).read
+		
 		# defaults to returning our items unchanged
-		self.fun = lambda item: item
+		if self.fun is None:
+			self.fun = lambda item: item
 				
 		
 class IteratorThreadTask(IteratorTaskBase, ThreadTaskBase):

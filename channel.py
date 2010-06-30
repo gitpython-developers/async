@@ -16,7 +16,7 @@ import sys
 
 __all__ = ('Channel', 'SerialChannel', 'Writer', 'ChannelWriter', 'CallbackChannelWriter',
 			'Reader', 'ChannelReader', 'CallbackChannelReader', 'mkchannel', 'ReadOnly', 
-			'IteratorReader')
+			'IteratorReader', 'CallbackReaderMixin', 'CallbackWriterMixin')
 
 #{ Classes 
 class Channel(object):

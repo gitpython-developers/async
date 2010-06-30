@@ -1,4 +1,4 @@
-"""Channel testing"""
+"""Pool testing"""
 from lib import *
 from task import *
 
