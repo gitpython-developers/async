@@ -28,4 +28,13 @@ Getting Started
 ===============
 It is advised to have a look at the :ref:`Usage Guide <tutorial-label>` for a brief introduction.
     
+
+=================
+Source Repository
+=================
+The latest source can be cloned using git from one of the following locations:
+
+ * git://gitorious.org/git-python/async.git
+ * git://github.com/Byron/async.git
+
 .. _setuptools: http://peak.telecommunity.com/DevCenter/setuptools
