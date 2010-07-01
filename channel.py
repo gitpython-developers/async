@@ -16,7 +16,7 @@ import sys
 
 __all__ = ('Channel', 'SerialChannel', 'Writer', 'ChannelWriter', 'CallbackChannelWriter',
 			'Reader', 'ChannelReader', 'CallbackChannelReader', 'mkchannel', 'ReadOnly', 
-			'IteratorReader')
+			'IteratorReader', 'CallbackReaderMixin', 'CallbackWriterMixin')
 
 #{ Classes 
 class Channel(object):
@@ -114,10 +114,12 @@ class CallbackWriterMixin(object):
 		self._pre_cb = None
 	
 	def set_pre_cb(self, fun = lambda item: item):
-		"""Install a callback to be called before the given item is written.
+		"""
+		Install a callback to be called before the given item is written.
 		It returns a possibly altered item which will be written to the channel
 		instead, making it useful for pre-write item conversions.
 		Providing None uninstalls the current method.
+		
 		:return: the previously installed function or None
 		:note: Must be thread-safe if the channel is used in multiple threads"""
 		prev = self._pre_cb
@@ -161,9 +163,11 @@ class Reader(object):
 	#{ Interface
 	
 	def read(self, count=0, block=True, timeout=None):
-		"""read a list of items read from the device. The list, as a sequence
+		"""
+		read a list of items read from the device. The list, as a sequence
 		of items, is similar to the string of characters returned when reading from 
 		file like objects.
+		
 		:param count: given amount of items to read. If < 1, all items will be read
 		:param block: if True, the call will block until an item is available
 		:param timeout: if positive and block is True, it will block only for the 
@@ -275,10 +279,12 @@ class CallbackReaderMixin(object):
 		self._post_cb = None
 	
 	def set_pre_cb(self, fun = lambda count: None):
-		"""Install a callback to call with the item count to be read before any 
+		"""
+		Install a callback to call with the item count to be read before any 
 		item is actually read from the channel. 
 		Exceptions will be propagated.
 		If a function is not provided, the call is effectively uninstalled.
+		
 		:return: the previously installed callback or None
 		:note: The callback must be threadsafe if the channel is used by multiple threads."""
 		prev = self._pre_cb
@@ -286,10 +292,11 @@ class CallbackReaderMixin(object):
 		return prev
 		
 	def set_post_cb(self, fun = lambda items: items):
-		"""Install a callback to call after items have been read, but before 
-		they are returned to the caller. The callback may adjust the items and/or
-		the list
+		"""
+		Install a callback to call after items have been read, but before 
+		they are returned to the caller. The callback may adjust the items and/or the list.
 		If no function is provided, the callback is uninstalled
+		
 		:return: the previously installed function"""
 		prev = self._post_cb
 		self._post_cb = fun
@@ -361,7 +368,8 @@ class IteratorReader(Reader):
 
 #{ Constructors
 def mkchannel(ctype = Channel, wtype = ChannelWriter, rtype = ChannelReader):
-	"""Create a channel, with a reader and a writer
+	"""
+	Create a channel, with a reader and a writer
 	:return: tuple(reader, writer)
 	:param ctype: Channel to instantiate
 	:param wctype: The type of the write channel to instantiate

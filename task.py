@@ -12,7 +12,8 @@ __all__ = ('Task', 'ThreadTaskBase', 'IteratorTaskBase',
 			'IteratorThreadTask', 'ChannelThreadTask')
 
 class Task(Node):
-	"""Abstracts a named task, which contains 
+	"""
+	Abstracts a named task, which contains 
 	additional information on how the task should be queued and processed.
 	
 	Results of the item processing are sent to a writer, which is to be 
@@ -28,7 +29,8 @@ class Task(Node):
 	 specify this here, causing chunks to be no larger than max_chunksize
 	* **apply_single** if True, default True, individual items will be given to the 
 		worker function. If False, a list of possibly multiple items will be passed
-		instead."""
+		instead.
+	"""
 	__slots__ = (	'_read',			# method to yield items to process 
 					'_out_writer', 			# output write channel
 					'_exc',				# exception caught
@@ -68,7 +70,8 @@ class Task(Node):
 		self._out_writer = writer
 		
 	def writer(self):
-		""":return: a proxy to our write channel or None if non is set
+		"""
+		:return: a proxy to our write channel or None if non is set
 		:note: you must not hold a reference to our write channel when the 
 			task is being processed. This would cause the write channel never 
 			to be closed as the task will think there is still another instance
@@ -193,8 +196,10 @@ class IteratorTaskBase(Task):
 	def __init__(self, iterator, *args, **kwargs):
 		Task.__init__(self, *args, **kwargs)
 		self._read = IteratorReader(iterator).read
+		
 		# defaults to returning our items unchanged
-		self.fun = lambda item: item
+		if self.fun is None:
+			self.fun = lambda item: item
 				
 		
 class IteratorThreadTask(IteratorTaskBase, ThreadTaskBase):

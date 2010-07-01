@@ -193,7 +193,7 @@ def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_of
 def make_iterator_task(ni, taskcls=TestThreadTask, **kwargs):
 	""":return: task which yields ni items
 	:param taskcls: the actual iterator type to use
-	:param **kwargs: additional kwargs to be passed to the task"""
+	:param kwargs: additional kwargs to be passed to the task"""
 	t = taskcls(iter(range(ni)), 'iterator', None, **kwargs)
 	if isinstance(t, _TestTaskBase):
 		t.fun = make_proxy_method(t)

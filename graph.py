@@ -65,7 +65,7 @@ class Graph(object):
 	def add_edge(self, u, v):
 		"""Add an undirected edge between the given nodes u and v.
 		
-		return: self
+		:return: self
 		:raise ValueError: If the new edge would create a cycle"""
 		if u is v:
 			raise ValueError("Cannot connect a node with itself")

@@ -106,8 +106,7 @@ class PoolReader(CallbackChannelReader):
 	
 	def read(self, count=0, block=True, timeout=None):
 		"""Read an item that was processed by one of our threads
-		:note: Triggers task dependency handling needed to provide the necessary 
-			input"""
+		:note: Triggers task dependency handling needed to provide the necessary input"""
 		# NOTE: we always queue the operation that would give us count items
 		# as tracking the scheduled items or testing the channels size
 		# is in herently unsafe depending on the design of the task network
@@ -389,13 +388,15 @@ class Pool(object):
 			self._taskgraph_lock.release()
 		
 	def remove_task(self, task, _from_destructor_ = False):
-		"""Delete the task
+		"""
+		Delete the task.
 		Additionally we will remove orphaned tasks, which can be identified if their 
 		output channel is only held by themselves, so no one will ever consume 
 		its items.
 		
 		This method blocks until all tasks to be removed have been processed, if 
 		they are currently being processed.
+		
 		:return: self"""
 		self._taskgraph_lock.acquire()
 		try:
@@ -430,6 +431,7 @@ class Pool(object):
 	
 	def add_task(self, task):
 		"""Add a new task to be processed.
+		
 		:return: a read channel to retrieve processed items. If that handle is lost, 
 			the task will be considered orphaned and will be deleted on the next 
 			occasion."""
