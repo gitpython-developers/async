@@ -57,7 +57,7 @@ if setuptools_build_py_module:
 
     
 setup(name = "async",
-      version = "0.6.0",
+      version = "0.6.1",
       description = "Async Framework",
       author = "Sebastian Thiel",
       author_email = "byronimo@gmail.com",
