@@ -132,6 +132,17 @@ class HSCondition(deque):
 				if not gotit:
 					try:
 						self.remove(waiter)
+					except AttributeError:
+						# handle python 2.4 - actually this should be made thread-safe
+						# but lets see ... 
+						try:
+							# lets hope we pop the right one - we don't loop over it
+							# yet-we just keep minimal compatability with py 2.4
+							item = self.pop()
+							if item != waiter:
+								self.append(item)
+						except IndexError:
+							pass
 					except ValueError:
 						pass
 				# END didn't ever get it
