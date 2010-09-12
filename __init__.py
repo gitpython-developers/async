@@ -12,6 +12,7 @@ def _init_signals():
 	"""Assure we shutdown our threads correctly when being interrupted"""
 	import signal
 	import thread
+	import sys
 	
 	prev_handler = signal.getsignal(signal.SIGINT)
 	def thread_interrupt_handler(signum, frame):
@@ -21,7 +22,12 @@ def _init_signals():
 			raise KeyboardInterrupt()
 		# END call previous handler
 	# END signal handler
-	signal.signal(signal.SIGINT, thread_interrupt_handler)
+	try:
+		signal.signal(signal.SIGINT, thread_interrupt_handler)
+	except ValueError:
+		# happens if we don't try it from the main thread
+		print >> sys.stderr, "Failed to setup thread-interrupt handler. This is usually not critical"
+	# END exception handling
 
 
 #} END init
