@@ -21,6 +21,7 @@ def do_terminate_threads(whitelist=list()):
 			continue
 		if whitelist and t not in whitelist:
 			continue
+		t.schedule_termination()
 		t.stop_and_join()
 	# END for each thread
 
@@ -76,7 +77,11 @@ class TerminatableThread(threading.Thread):
 	
 	#} END subclass interface
 		
-	#{ Interface 
+	#{ Interface
+	def schedule_termination(self):
+		"""Schedule this thread to be terminated as soon as possible.
+		:note: this method does not block."""
+		self._terminate = True
 		
 	def stop_and_join(self):
 		"""Ask the thread to stop its operation and wait for it to terminate
