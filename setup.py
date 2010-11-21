@@ -79,5 +79,6 @@ setup(cmdclass={'build_ext':build_ext_nofail},
       package_dir = {'async':''},
       ext_modules=[Extension('async.mod.zlib', ['mod/zlibmodule.c'])],
       license = "BSD License",
+      zip_safe=False,
       long_description = """Async is a framework to process interdependent tasks in a pool of workers"""
       )
