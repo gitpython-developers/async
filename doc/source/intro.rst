@@ -32,10 +32,9 @@ It is advised to have a look at the :ref:`Usage Guide <tutorial-label>` for a br
 =================
 Source Repository
 =================
-The latest source can be cloned using git from one of the following locations:
+The latest source can be cloned using git from github:
 
- * git://gitorious.org/git-python/async.git
- * git://github.com/Byron/async.git
+ * git://github.com/gitpython-developers/async.git
  
  
 License Information
