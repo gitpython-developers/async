@@ -18,8 +18,7 @@ SOURCE
 ======
 The source is available in a git repository at gitorious and github:
 
-git://gitorious.org/git-python/async.git
-git://github.com/Byron/async.git
+git://github.com/gitpython-developers/async.git
 
 Run the tests with 
  cd async
@@ -31,7 +30,7 @@ http://groups.google.com/group/git-python
 
 ISSUE TRACKER
 =============
-http://byronimo.lighthouseapp.com/projects/51787-gitpython
+https://github.com/gitpython-developers/async/issues
 
 LICENSE
 =======
