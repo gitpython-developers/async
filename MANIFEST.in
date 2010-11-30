@@ -2,9 +2,9 @@ include VERSION
 include LICENSE
 include CHANGES
 include AUTHORS
-include README
+include README.rst
 
-graft test
+graft async/test
 
 global-exclude .git*
 global-exclude *.pyc
