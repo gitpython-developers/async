@@ -1,3 +1,7 @@
+# Copyright (C) 2010, 2011 Sebastian Thiel (byronimo@gmail.com) and contributors
+#
+# This module is part of async and is released under
+# the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Contains a queue based channel implementation"""
 from Queue import (
 	Empty, 
