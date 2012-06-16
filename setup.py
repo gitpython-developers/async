@@ -76,7 +76,7 @@ setup(cmdclass={'build_ext':build_ext_nofail},
       url = "http://gitorious.org/git-python/async",
       packages = ('async', 'async.mod', 'async.test', 'async.test.mod'),
       package_dir = {'async':'async'},
-      ext_modules=[Extension('async.mod.zlib', ['async/mod/zlibmodule.c'])],
+      ext_modules=[Extension('async.mod.zlib', ['async/mod/zlibmodule.c'], libraries=['z'])],
       license = "BSD License",
       zip_safe=False,
       long_description = """Async is a framework to process interdependent tasks in a pool of workers"""
