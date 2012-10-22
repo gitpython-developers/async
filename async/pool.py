@@ -508,5 +508,7 @@ class Pool(object):
 class ThreadPool(Pool):
 	"""A pool using threads as worker"""
 	WorkerCls = WorkerThread
-	LockCls = Lock
+        # NOTE: Since threading.Lock is a method not a class, we need to prevent
+        # conversion to an unbound method.
+	LockCls = staticmethod(Lock)
 	TaskQueueCls = AsyncQueue
