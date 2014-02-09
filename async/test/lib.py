@@ -7,4 +7,4 @@ import unittest
 
 
 class TestBase(unittest.TestCase):
-	"""Common base for all tests"""
+    """Common base for all tests"""
