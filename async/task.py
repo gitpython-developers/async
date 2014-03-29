@@ -6,11 +6,9 @@ from graph import Node
 from util import ReadOnly
 from channel import IteratorReader
 
-
 import threading
 import weakref
 import sys
-import new
 
 __all__ = ('Task', 'ThreadTaskBase', 'IteratorTaskBase', 
             'IteratorThreadTask', 'ChannelThreadTask')
