@@ -7,7 +7,6 @@
 from threading import (
     Lock,
     _allocate_lock,
-    _Condition, 
     _sleep,
     _time,
     )

@@ -31,7 +31,6 @@ from channel import (
 import sys
 import weakref
 from time import sleep
-import new
 
 
 __all__ = ('PoolReader', 'Pool', 'ThreadPool')
