@@ -14,6 +14,11 @@ REQUIREMENTS
 
 * Python Nose - for running the tests
 
+DEVELOPMENT STATUS
+===================
+
+Development was discontinued, as there are much better alternatives, like zeromq.
+
 SOURCE
 ======
 The source is available in a git repository at gitorious and github:
