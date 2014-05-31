@@ -11,7 +11,7 @@ from threading import (
     _time,
     )
 
-from Queue import (
+from queue import (
         Empty,
         )
 

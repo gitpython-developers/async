@@ -39,7 +39,7 @@ class _TestTaskBase(object):
         :return: self"""
         self.lock.acquire()
         if self.item_count != fc:
-            print self.item_count, fc
+            print(self.item_count, fc)
         assert self.item_count == fc
         self.lock.release()
         
@@ -166,7 +166,7 @@ def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_of
     tasks = [feeder]
     
     inrc = frc
-    for tc in xrange(count):
+    for tc in range(count):
         t = transformercls(inrc, tc+id_offset, None)
         
         t.fun = make_proxy_method(t)
@@ -198,7 +198,7 @@ def make_iterator_task(ni, taskcls=TestThreadTask, **kwargs):
     """:return: task which yields ni items
     :param taskcls: the actual iterator type to use
     :param kwargs: additional kwargs to be passed to the task"""
-    t = taskcls(iter(range(ni)), 'iterator', None, **kwargs)
+    t = taskcls(iter(list(range(ni))), 'iterator', None, **kwargs)
     if isinstance(t, _TestTaskBase):
         t.fun = make_proxy_method(t)
     return t

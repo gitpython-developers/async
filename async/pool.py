@@ -3,24 +3,24 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Implementation of a thread-pool working with channels"""
-from thread import (
+from .thread import (
         WorkerThread, 
         StopProcessing,
         )
 from threading import Lock
 
-from util import (
+from .util import (
         AsyncQueue,
         DummyLock
     )
 
-from Queue import (
+from queue import (
     Queue, 
     Empty
     )
 
-from graph import Graph 
-from channel import (
+from .graph import Graph 
+from .channel import (
         mkchannel,
         ChannelWriter, 
         Channel,
@@ -31,6 +31,7 @@ from channel import (
 import sys
 import weakref
 from time import sleep
+from functools import reduce
 
 
 __all__ = ('PoolReader', 'Pool', 'ThreadPool')
@@ -284,7 +285,7 @@ class Pool(object):
                 # to process too much. This can be defined per task
                 qput = self._queue.put
                 if numchunks > 1:
-                    for i in xrange(numchunks):
+                    for i in range(numchunks):
                         qput((task.process, chunksize))
                     # END for each chunk to put
                 else:
@@ -297,7 +298,7 @@ class Pool(object):
             else:
                 # no workers, so we have to do the work ourselves
                 if numchunks > 1:
-                    for i in xrange(numchunks):
+                    for i in range(numchunks):
                         task.process(chunksize)
                     # END for each chunk to put
                 else:
