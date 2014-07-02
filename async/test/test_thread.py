@@ -4,9 +4,9 @@
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 # -*- coding: utf-8 -*-
 """ Test thead classes and functions"""
-from lib import *
+from .lib import *
 from async.thread import *
-from Queue import Queue
+from queue import Queue
 import time
 
 class TestWorker(WorkerThread):

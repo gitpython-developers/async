@@ -3,7 +3,7 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Channel testing"""
-from lib import *
+from .lib import *
 from async.util import *
 from async.task import *
 

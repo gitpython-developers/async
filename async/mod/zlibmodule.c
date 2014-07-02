@@ -3,9 +3,20 @@
 
 /* Windows users:  read Python's PCbuild\readme.txt */
 
-
 #include "Python.h"
 #include "zlib.h"
+
+#if PY_MAJOR_VERSION >= 3
+  #define PyInt_FromLong PyLong_FromLong
+  #define PyString_FromString PyUnicode_FromString
+  #define PyString_FromStringAndSize PyUnicode_FromStringAndSize
+  #define PyString_AS_STRING PyUnicode_AS_UNICODE
+  #define _PyString_Resize PyUnicode_Resize
+  #define PyText_AS_UTF8 _PyUnicode_AsString
+  #define PyText_Check PyUnicode_Check
+#endif
+
+
 
 #ifdef WITH_THREAD
 #include "pythread.h"
@@ -897,6 +908,23 @@ static PyMethodDef Decomp_methods[] =
     {NULL, NULL}
 };
 
+
+/* 
+   Py_FindMethod gone in Python 3, so Comp_getattr and Decomp_getattr
+   have to be rewritten. I googled the following tip somewhere:
+
+   "The same functionality can be achieved with the tp_getattro slot:
+   implement your special dynamic attributes there, and then call
+   PyObject_GenericGetAttr for the default behavior. You may have a
+   look at the implementation of the pyexpat module:
+   Modules/pyexpat.c, function xmlparse_getattro."  
+
+   Looking at xmlparse_getattro [1] it seems it could be readily adopted
+   here.
+
+   [1] http://svn.python.org/projects/python/branches/py3k/Modules/pyexpat.c
+*/
+
 static PyObject *
 Comp_getattr(compobject *self, char *name)
 {
@@ -1052,17 +1080,50 @@ PyDoc_STRVAR(zlib_module_documentation,
 "Compressor objects support compress() and flush() methods; decompressor\n"
 "objects support decompress() and flush().");
 
+#if PY_MAJOR_VERSION >= 3
+/* See http://python3porting.com/cextensions.html */
+static struct PyModuleDef zlib_moddef = {
+  PyModuleDef_HEAD_INIT,
+  "zlib",
+  zlib_module_documentation,
+  -1,
+  zlib_methods,
+  NULL, NULL, NULL, NULL
+};
+#endif
+
+
+
 PyMODINIT_FUNC
 PyInit_zlib(void)
 {
     PyObject *m, *ver;
+
+#if PY_MAJOR_VERSION >= 3
+    /* Use this version check as a replacement for Py_InitModule4 */
+    ver = PySys_GetObject("version");
+    if (ver == NULL || !PyText_Check(ver) ||
+	strncmp(PyText_AS_UTF8(ver), PY_VERSION, 3) != 0) {
+      PyErr_Format(PyExc_ImportError,
+		   "this module was compiled for Python %c%c%c",
+		   PY_VERSION[0], PY_VERSION[1], PY_VERSION[2]);
+      return NULL;
+    }
+#endif
+
     Py_TYPE(&Comptype) = &PyType_Type;
     Py_TYPE(&Decomptype) = &PyType_Type;
+#if PY_MAJOR_VERSION >= 3
+    m = PyModule_Create(&zlib_moddef);
+    if (m == NULL)
+	return m;
+#else
     m = Py_InitModule4("zlib", zlib_methods,
 		       zlib_module_documentation,
 		       (PyObject*)NULL,PYTHON_API_VERSION);
     if (m == NULL)
 	return;
+#endif
 
     ZlibError = PyErr_NewException("zlib.error", NULL, NULL);
     if (ZlibError != NULL) {
@@ -1101,4 +1162,8 @@ PyInit_zlib(void)
 	PyModule_AddObject(m, "ZLIB_VERSION", ver);
 
     PyModule_AddStringConstant(m, "__version__", "1.0");
+
+#if PY_MAJOR_VERSION >= 3
+    return m;
+#endif
 }

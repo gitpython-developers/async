@@ -2,9 +2,9 @@
 #
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
-from graph import Node
-from util import ReadOnly
-from channel import IteratorReader
+from .graph import Node
+from .util import ReadOnly
+from .channel import IteratorReader
 
 import threading
 import weakref
@@ -128,7 +128,7 @@ class Task(Node):
                 self._num_writers -= 1
                 self._wlock.release()
             # END handle writer count
-        except Exception, e:
+        except Exception as e:
             # be sure our task is not scheduled again
             self.set_done()
             
@@ -226,7 +226,7 @@ class ChannelThreadTask(Task, ThreadTaskBase):
         """:return: input channel from which we read"""
         # the instance is bound in its instance method - lets use this to keep
         # the refcount at one ( per consumer )
-        return self._read.im_self
+        return self._read.__self__
         
     def set_read(self, read):
         """Adjust the read method to the given one"""

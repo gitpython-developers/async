@@ -7,7 +7,7 @@
 __docformat__ = "restructuredtext"
 import threading
 import inspect
-import Queue
+import queue
 
 import sys
 
@@ -140,7 +140,7 @@ class WorkerThread(TerminatableThread):
         super(WorkerThread, self).__init__()
         self.inq = inq
         if inq is None:
-            self.inq = Queue.Queue()
+            self.inq = queue.Queue()
     
     @classmethod
     def stop(cls, *args):
@@ -171,7 +171,7 @@ class WorkerThread(TerminatableThread):
                 try:
                     rval = None
                     if inspect.ismethod(routine):
-                        if routine.im_self is None:
+                        if routine.__self__ is None:
                             rval = routine(self, arg)
                         else:
                             rval = routine(arg)
@@ -190,7 +190,7 @@ class WorkerThread(TerminatableThread):
                     del(tasktuple)
             except StopProcessing:
                 break
-            except Exception,e:
+            except Exception as e:
                 sys.stderr.write("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !\n" % (self.getName(), str(tasktuple), str(e)))
                 continue    # just continue 
             # END routine exception handling

@@ -3,7 +3,7 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Module containing examples from the documentaiton"""
-from lib import *
+from .lib import *
 
 from async.pool import *
 from async.task import *
@@ -25,7 +25,7 @@ class TestExamples(TestBase):
         assert p.size() == 1
         
         # A task performing processing on items from an iterator
-        t = IteratorThreadTask(iter(range(10)), "power", lambda i: i*i)
+        t = IteratorThreadTask(iter(list(range(10))), "power", lambda i: i*i)
         reader = p.add_task(t)
         
         # read all items - they where procesed by worker 1
@@ -34,7 +34,7 @@ class TestExamples(TestBase):
         
         
         # chaining 
-        t = IteratorThreadTask(iter(range(10)), "power", lambda i: i*i)
+        t = IteratorThreadTask(iter(list(range(10))), "power", lambda i: i*i)
         reader = p.add_task(t)
         
         # chain both by linking their readers

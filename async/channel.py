@@ -3,12 +3,12 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Contains a queue based channel implementation"""
-from Queue import (
+from queue import (
     Empty, 
     Full
     )
 
-from util import (
+from .util import (
         AsyncQueue, 
         SyncQueue,
         ReadOnly
@@ -154,7 +154,7 @@ class Reader(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         """Implements the iterator protocol, iterating individual items"""
         items = self.read(1)
         if items:
@@ -220,7 +220,7 @@ class ChannelReader(Reader):
                         out.append(queue.get(False))
                     # END for each item
                 else:
-                    for i in xrange(count):
+                    for i in range(count):
                         out.append(queue.get(False))
                     # END for each item
                 # END handle count
@@ -230,7 +230,7 @@ class ChannelReader(Reader):
         else:
             # to get everything into one loop, we set the count accordingly
             if count == 0:
-                count = sys.maxint
+                count = sys.maxsize
             # END handle count
             
             i = 0
@@ -353,9 +353,9 @@ class IteratorReader(Reader):
             else:
                 out = list()
                 it = self._iter
-                for i in xrange(count):
+                for i in range(count):
                     try:
-                        out.append(it.next())
+                        out.append(next(it))
                     except StopIteration:
                         self._empty = True
                         break

@@ -3,7 +3,7 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Channel testing"""
-from lib import *
+from .lib import *
 from async.channel import *
 
 import time
@@ -83,7 +83,7 @@ class TestChannels(TestBase):
         
         
         # ITERATOR READER
-        reader = IteratorReader(iter(range(10)))
+        reader = IteratorReader(iter(list(range(10))))
         assert len(reader.read(2)) == 2
         assert len(reader.read(0)) == 8
         # its empty now
@@ -95,7 +95,7 @@ class TestChannels(TestBase):
         
         
         # test general read-iteration - its supported by all readers
-        reader = IteratorReader(iter(range(10)))
+        reader = IteratorReader(iter(list(range(10))))
         assert len(list(reader)) == 10
         
         # NOTE: its thread-safety is tested by the pool 

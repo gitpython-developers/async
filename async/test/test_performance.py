@@ -3,8 +3,8 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Channel testing"""
-from lib import *
-from task import *
+from .lib import *
+from .task import *
 
 from async.pool import *
 from async.thread import terminate_threads
@@ -24,7 +24,7 @@ class TestThreadPoolPerformance(TestBase):
         # when adjusting the amount of threads
         pool = ThreadPool(0)
         ni = 1000               # number of items to process
-        print self.max_threads
+        print(self.max_threads)
         for num_threads in range(self.max_threads*2 + 1):
             pool.set_size(num_threads)
             for num_transformers in (1, 5, 10):
@@ -42,14 +42,14 @@ class TestThreadPoolPerformance(TestBase):
                     reader = rcs[-1]
                     st = time.time()
                     if read_mode == 1:
-                        for i in xrange(ni):
+                        for i in range(ni):
                             assert len(reader.read(1)) == 1
                         # END for each item to read
                     else:
                         assert len(reader.read(0)) == ni
                     # END handle read mode
                     elapsed = time.time() - st
-                    print >> sys.stderr, fmt % (num_threads, ni, num_transformers, elapsed, ni / elapsed)
+                    print(fmt % (num_threads, ni, num_transformers, elapsed, ni / elapsed), file=sys.stderr)
                 # END for each read-mode
             # END for each amount of processors
         # END for each thread count
