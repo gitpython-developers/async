@@ -7,17 +7,18 @@
 from threading import (
     Lock,
     _allocate_lock,
-    _sleep,
     _time,
-    )
+)
 
-from queue import (
-        Empty,
-        )
+try:
+    from queue import Empty
+except ImportError:
+    from Queue import Empty
 
 from collections import deque
 import sys
 import os
+import time
 
 #{ Routines
 
@@ -130,7 +131,7 @@ class HSCondition(deque):
                     # this makes 4 threads working as good as two, but of course
                     # it causes more frequent micro-sleeping
                     #delay = min(delay * 2, remaining, .05)
-                    _sleep(delay)
+                    time.sleep(delay)
                 # END endless loop
                 if not gotit:
                     try:

@@ -3,9 +3,15 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Contains a queue based channel implementation"""
-from queue import (
-    Empty, 
-    Full
+try:
+    from queue import (
+        Empty,
+        Full
+    )
+except ImportError:
+    from Queue import (
+        Empty,
+        Full
     )
 
 from .util import (
@@ -160,6 +166,10 @@ class Reader(object):
         if items:
             return items[0]
         raise StopIteration
+
+    def next(self):
+        """Support the Python 2 iterator syntax"""
+        return self.__next__()
 
     #} END iterator protocol
 
@@ -332,7 +342,7 @@ class IteratorReader(Reader):
 
     def __init__(self, iterator):
         self._empty = False
-        if not hasattr(iterator, 'next'):
+        if not hasattr(iterator, 'next') and not (hasattr(iterator, "__next__")):
             raise ValueError("Iterator %r needs a next() function" % iterator)
         self._iter = iterator
         self._lock = self.lock_type()

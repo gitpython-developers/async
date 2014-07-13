@@ -38,7 +38,7 @@ class TestThreadPoolPerformance(TestBase):
                     if read_mode == 1:
                         mode_info = "read(1) * %i" % ni
                     # END mode info
-                    fmt = "Threadcount=%%i: Produced %%i items using %s in %%i transformations in %%f s (%%f items / s)" % mode_info
+                    fmt = "Threadcount=%%i: Produced %%i items using %s in %%i transformations in %%f s (%%f items / s)\n" % mode_info
                     reader = rcs[-1]
                     st = time.time()
                     if read_mode == 1:
@@ -49,7 +49,7 @@ class TestThreadPoolPerformance(TestBase):
                         assert len(reader.read(0)) == ni
                     # END handle read mode
                     elapsed = time.time() - st
-                    print(fmt % (num_threads, ni, num_transformers, elapsed, ni / elapsed), file=sys.stderr)
+                    sys.stderr.write(fmt % (num_threads, ni, num_transformers, elapsed, ni / elapsed))
                 # END for each read-mode
             # END for each amount of processors
         # END for each thread count

@@ -30,7 +30,7 @@ def _init_signals():
         signal.signal(signal.SIGINT, thread_interrupt_handler)
     except ValueError:
         # happens if we don't try it from the main thread
-        print("Failed to setup thread-interrupt handler. This is usually not critical", file=sys.stderr)
+        sys.stderr.write("Failed to setup thread-interrupt handler. This is usually not critical")
     # END exception handling
 
 

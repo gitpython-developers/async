@@ -6,7 +6,11 @@
 """ Test thead classes and functions"""
 from .lib import *
 from async.thread import *
-from queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
+
 import time
 
 class TestWorker(WorkerThread):

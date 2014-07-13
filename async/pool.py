@@ -14,9 +14,15 @@ from .util import (
         DummyLock
     )
 
-from queue import (
-    Queue, 
-    Empty
+try:
+    from queue import (
+        Queue,
+        Empty
+        )
+except ImportError:
+    from Queue import (
+        Queue,
+        Empty
     )
 
 from .graph import Graph
@@ -276,6 +282,10 @@ class Pool(object):
                 chunksize = task.max_chunksize
                 remainder = actual_count - (numchunks * chunksize)
             # END handle chunking
+
+            # These both need to be integers, not floats
+            chunksize = int(chunksize)
+            numchunks = int(numchunks)
 
             # the following loops are kind of unrolled - code duplication
             # should make things execute faster. Putting the if statements

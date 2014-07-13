@@ -7,7 +7,10 @@
 __docformat__ = "restructuredtext"
 import threading
 import inspect
-import queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 import sys
 

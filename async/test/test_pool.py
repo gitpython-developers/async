@@ -23,7 +23,7 @@ class TestThreadPool(TestBase):
 
     def _assert_single_task(self, p, async=False):
         """Performs testing in a synchronized environment"""
-        print("Threadpool: Starting single task (async = %i) with %i threads" % (async, p.size()), file=sys.stderr)
+        sys.stderr.write("Threadpool: Starting single task (async = %i) with %i threads\n" % (async, p.size()))
         null_tasks = p.num_tasks()      # in case we had some before
 
         # add a simple task
@@ -71,10 +71,10 @@ class TestThreadPool(TestBase):
                 assert i == items[0]
         # END for each item
         elapsed = time.time() - st
-        print("Threadpool: processed %i individual items, with %i threads, one at a time, in %f s ( %f items / s )" % (ni, p.size(), elapsed, ni / elapsed), file=sys.stderr)
-        
-        # it couldn't yet notice that the input is depleted as we pulled exaclty 
-        # ni items - the next one would remove it. Instead, we delete our channel 
+        sys.stderr.write("Threadpool: processed %i individual items, with %i threads, one at a time, in %f s ( %f items / s )\n" % (ni, p.size(), elapsed, ni / elapsed))
+
+        # it couldn't yet notice that the input is depleted as we pulled exaclty
+        # ni items - the next one would remove it. Instead, we delete our channel
         # which triggers orphan handling
         assert not task.is_done()
         assert p.num_tasks() == 1 + null_tasks
@@ -162,8 +162,8 @@ class TestThreadPool(TestBase):
         # END pull individual items
         # too many processing counts ;)
         elapsed = time.time() - st
-        print("Threadpool: processed %i individual items in chunks of %i, with %i threads, one at a time, in %f s ( %f items / s )" % (ni, ni/4, p.size(), elapsed, ni / elapsed), file=sys.stderr)
-        
+        sys.stderr.write("Threadpool: processed %i individual items in chunks of %i, with %i threads, one at a time, in %f s ( %f items / s)\n" % (ni, ni/4, p.size(), elapsed, ni / elapsed))
+
         task._assert(ni, ni)
         assert p.num_tasks() == 1 + null_tasks
         assert p.remove_task(task) is p     # del manually this time
@@ -207,17 +207,17 @@ class TestThreadPool(TestBase):
         assert len(rc.read()) == nri
         assert task.is_done()
         assert isinstance(task.error(), AssertionError)
-        
-        print("done with everything", file=sys.stderr)
-        
-        
-        
+
+        sys.stderr.write("done with everything\n")
+
+
+
     def _assert_async_dependent_tasks(self, pool):
         # includes failure in center task, 'recursive' orphan cleanup
         # This will also verify that the channel-close mechanism works
         # t1 -> t2 -> t3
-    
-        print("Threadpool: starting async dependency test in %i threads" % pool.size(), file=sys.stderr)
+
+        sys.stderr.write("Threadpool: starting async dependency test in %i threads\n" % pool.size())
         null_tasks = pool.num_tasks()
         ni = 1000
         count = 3
@@ -243,9 +243,9 @@ class TestThreadPool(TestBase):
         time.sleep(0.15)
         assert sys.getrefcount(ts[-1]) == 2 # ts + call
         assert sys.getrefcount(ts[0]) == 2  # ts + call
-        print("Dependent Tasks: evaluated %i items of %i dependent in %f s ( %i items / s )" % (ni, aic, elapsed, ni / elapsed), file=sys.stderr)
-        
-        
+        sys.stderr.write("Dependent Tasks: evaluated %i items of %i dependent in %f s ( %i items / s )\n" % (ni, aic, elapsed, ni / elapsed))
+
+
         # read(1)
         #########
         ts, rcs = make_task()
@@ -257,9 +257,9 @@ class TestThreadPool(TestBase):
         elapsed_single = time.time() - st
         # another read yields nothing, its empty
         assert len(rcs[-1].read()) == 0
-        print("Dependent Tasks: evaluated %i items with read(1) of %i dependent in %f s ( %i items / s )" % (ni, aic, elapsed_single, ni / elapsed_single), file=sys.stderr)
-        
-        
+        sys.stderr.write("Dependent Tasks: evaluated %i items with read(1) of %i dependent in %f s ( %i items / s )\n" % (ni, aic, elapsed_single, ni / elapsed_single))
+
+
         # read with min-count size
         ###########################
         # must be faster, as it will read ni / 4 chunks
@@ -277,8 +277,8 @@ class TestThreadPool(TestBase):
         elapsed_minsize = time.time() - st
         # its empty
         assert len(rcs[-1].read()) == 0
-        print("Dependent Tasks: evaluated %i items with read(1), min_size=%i, of %i dependent in %f s ( %i items / s )" % (ni, nri, aic, elapsed_minsize, ni / elapsed_minsize), file=sys.stderr)
-        
+        sys.stderr.write("Dependent Tasks: evaluated %i items with read(1), min_size=%i, of %i dependent in %f s ( %i items / s )\n" % (ni, nri, aic, elapsed_minsize, ni / elapsed_minsize))
+
         # it should have been a bit faster at least, and most of the time it is
         # Sometimes, its not, mainly because:
         # * The test tasks lock a lot, hence they slow down the system
@@ -319,10 +319,10 @@ class TestThreadPool(TestBase):
         items = p2rcs[-1].read()
         elapsed = time.time() - st
         assert len(items) == ni
-        
-        print("Dependent Tasks: evaluated 2 connected pools and %i items with read(0), of %i dependent tasks in %f s ( %i items / s )" % (ni, aic + aic-1, elapsed, ni / elapsed), file=sys.stderr)
-        
-        
+
+        sys.stderr.write("Dependent Tasks: evaluated 2 connected pools and %i items with read(0), of %i dependent tasks in %f s ( %i items / s )\n" % (ni, aic + aic-1, elapsed, ni / elapsed))
+
+
         # loose the handles of the second pool to allow others to go as well
         del(p2rcs); del(p2ts)
         assert p2.num_tasks() == 0
@@ -344,9 +344,9 @@ class TestThreadPool(TestBase):
         # END for each item to get
         elapsed = time.time() - st
         del(reader)     # decrement refcount
-        
-        print("Dependent Tasks: evaluated 2 connected pools and %i items with read(1), of %i dependent tasks in %f s ( %i items / s )" % (ni, aic + aic-1, elapsed, ni / elapsed), file=sys.stderr)
-        
+
+        sys.stderr.write("Dependent Tasks: evaluated 2 connected pools and %i items with read(1), of %i dependent tasks in %f s ( %i items / s )\n" % (ni, aic + aic-1, elapsed, ni / elapsed))
+
         # another read is empty
         assert len(rcs[-1].read()) == 0
 
@@ -481,6 +481,5 @@ class TestThreadPool(TestBase):
         # DEPENDENT TASK ASYNC MODE
         ###########################
         self._assert_async_dependent_tasks(p)
-        
-        print("Done with everything", file=sys.stderr)
-        
+
+        sys.stderr.write("Done with everything\n")
