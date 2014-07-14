@@ -11,13 +11,13 @@ def _init_atexit():
     import atexit
     from . import thread
     atexit.register(thread.do_terminate_threads)
-    
+
 def _init_signals():
     """Assure we shutdown our threads correctly when being interrupted"""
     import signal
     from . import thread
     import sys
-    
+
     prev_handler = signal.getsignal(signal.SIGINT)
     def thread_interrupt_handler(signum, frame):
         thread.do_terminate_threads()
@@ -30,7 +30,7 @@ def _init_signals():
         signal.signal(signal.SIGINT, thread_interrupt_handler)
     except ValueError:
         # happens if we don't try it from the main thread
-        print("Failed to setup thread-interrupt handler. This is usually not critical", file=sys.stderr)
+        sys.stderr.write("Failed to setup thread-interrupt handler. This is usually not critical")
     # END exception handling
 
 

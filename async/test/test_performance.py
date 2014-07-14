@@ -16,9 +16,9 @@ import sys
 
 
 class TestThreadPoolPerformance(TestBase):
-    
+
     max_threads = cpu_count()
-    
+
     def test_base(self):
         # create a dependency network, and see how the performance changes
         # when adjusting the amount of threads
@@ -29,16 +29,16 @@ class TestThreadPoolPerformance(TestBase):
             pool.set_size(num_threads)
             for num_transformers in (1, 5, 10):
                 for read_mode in range(2):
-                    ts, rcs = add_task_chain(pool, ni, count=num_transformers, 
-                                                feedercls=IteratorThreadTask, 
-                                                transformercls=TestPerformanceThreadTask, 
+                    ts, rcs = add_task_chain(pool, ni, count=num_transformers,
+                                                feedercls=IteratorThreadTask,
+                                                transformercls=TestPerformanceThreadTask,
                                                 include_verifier=False)
-                    
+
                     mode_info = "read(0)"
                     if read_mode == 1:
                         mode_info = "read(1) * %i" % ni
                     # END mode info
-                    fmt = "Threadcount=%%i: Produced %%i items using %s in %%i transformations in %%f s (%%f items / s)" % mode_info
+                    fmt = "Threadcount=%%i: Produced %%i items using %s in %%i transformations in %%f s (%%f items / s)\n" % mode_info
                     reader = rcs[-1]
                     st = time.time()
                     if read_mode == 1:
@@ -49,7 +49,7 @@ class TestThreadPoolPerformance(TestBase):
                         assert len(reader.read(0)) == ni
                     # END handle read mode
                     elapsed = time.time() - st
-                    print(fmt % (num_threads, ni, num_transformers, elapsed, ni / elapsed), file=sys.stderr)
+                    sys.stderr.write(fmt % (num_threads, ni, num_transformers, elapsed, ni / elapsed))
                 # END for each read-mode
             # END for each amount of processors
         # END for each thread count
