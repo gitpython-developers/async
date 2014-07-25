@@ -1,15 +1,16 @@
 #!/usr/bin/env python
-from distutils.core import setup, Extension
+from setuptools import setup
+from distutils.core import Extension
 from distutils.command.build_py import build_py
 from distutils.command.build_ext import build_ext
 
 import os, sys
 
-# wow, this is a mixed bag ... I am pretty upset about all of this ... 
+# wow, this is a mixed bag ... I am pretty upset about all of this ...
 setuptools_build_py_module = None
 try:
     # don't pull it in if we don't have to
-    if 'setuptools' in sys.modules: 
+    if 'setuptools' in sys.modules:
         import setuptools.command.build_py as setuptools_build_py_module
         from setuptools.command.build_ext import build_ext
 except ImportError:
@@ -25,23 +26,23 @@ class build_ext_nofail(build_ext):
         # END ignore errors
 
 def get_data_files(self):
-    """Can you feel the pain ? So, in python2.5 and python2.4 coming with maya, 
+    """Can you feel the pain ? So, in python2.5 and python2.4 coming with maya,
     the line dealing with the ``plen`` has a bug which causes it to truncate too much.
     It is fixed in the system interpreters as they receive patches, and shows how
     bad it is if something doesn't have proper unittests.
     The code here is a plain copy of the python2.6 version which works for all.
-    
+
     Generate list of '(package,src_dir,build_dir,filenames)' tuples"""
     data = []
     if not self.packages:
         return data
-        
+
     # this one is just for the setup tools ! They don't iniitlialize this variable
     # when they should, but do it on demand using this method.Its crazy
     if hasattr(self, 'analyze_manifest'):
         self.analyze_manifest()
     # END handle setuptools ...
-    
+
     for package in self.packages:
         # Locate package source directory
         src_dir = self.get_package_dir(package)
@@ -60,13 +61,13 @@ def get_data_files(self):
             ]
         data.append((package, src_dir, build_dir, filenames))
     return data
-    
+
 build_py.get_data_files = get_data_files
 if setuptools_build_py_module:
     setuptools_build_py_module.build_py._get_data_files = get_data_files
 # END apply setuptools patch too
 
-    
+
 setup(cmdclass={'build_ext':build_ext_nofail},
       name = "async",
       version = "0.6.1",
@@ -79,5 +80,7 @@ setup(cmdclass={'build_ext':build_ext_nofail},
       ext_modules=[Extension('async.mod.zlib', ['async/mod/zlibmodule.c'], libraries=['z'])],
       license = "BSD License",
       zip_safe=False,
-      long_description = """Async is a framework to process interdependent tasks in a pool of workers"""
+      long_description = """Async is a framework to process interdependent tasks in a pool of workers""",
+      tests_require=('nose'),
+      test_suite='nose.collector'
       )
