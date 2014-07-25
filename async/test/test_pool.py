@@ -202,7 +202,7 @@ class TestThreadPool(TestBase):
         # test failure after ni / 2 items
         # This makes sure it correctly closes the channel on failure to prevent blocking
         nri = ni/2
-        task = make_task(TestFailureThreadTask, fail_after=ni/2)
+        task = make_task(FixtureFailureThreadTask, fail_after=ni/2)
         rc = p.add_task(task)
         assert len(rc.read()) == nri
         assert task.is_done()
@@ -412,7 +412,7 @@ class TestThreadPool(TestBase):
         # SINGLE TASK SERIAL SYNC MODE
         ##############################
         # put a few unrelated tasks that we forget about - check ref counts and cleanup
-        t1, t2 = TestThreadTask(iter(list()), "nothing1", None), TestThreadTask(iter(list()), "nothing2", None)
+        t1, t2 = FixtureThreadTask(iter(list()), "nothing1", None), FixtureThreadTask(iter(list()), "nothing2", None)
         urc1 = p.add_task(t1)
         urc2 = p.add_task(t2)
         assert p.num_tasks() == 2
@@ -433,7 +433,7 @@ class TestThreadPool(TestBase):
         assert p.num_tasks() == 0
         assert sys.getrefcount(t2) == 2
 
-        t3 = TestChannelThreadTask(urc2, "channel", None)
+        t3 = FixtureChannelThreadTask(urc2, "channel", None)
         urc3 = p.add_task(t3)
         assert p.num_tasks() == 1
         del(urc3)

@@ -4,6 +4,9 @@
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 # -*- coding: utf-8 -*-
 """Module with threading utilities"""
+
+from __future__ import print_function
+
 __docformat__ = "restructuredtext"
 import threading
 import inspect
@@ -182,7 +185,8 @@ class WorkerThread(TerminatableThread):
                         rval = routine(arg)
                     else:
                         # ignore unknown items
-                        sys.stderr.write("%s: task %s was not understood - terminating\n" % (self.getName(), str(tasktuple)))
+                        print("%s: task %s was not understood - terminating" % (self.getName(), str(tasktuple)),
+                              file=sys.stderr)
                         break
                     # END make routine call
                 finally:
@@ -194,7 +198,9 @@ class WorkerThread(TerminatableThread):
             except StopProcessing:
                 break
             except Exception as e:
-                sys.stderr.write("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !\n" % (self.getName(), str(tasktuple), str(e)))
+                print("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !"
+                      % (self.getName(), str(tasktuple), str(e)),
+                      file=sys.stderr)
                 continue    # just continue
             # END routine exception handling
 
