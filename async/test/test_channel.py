@@ -5,8 +5,13 @@
 """Channel testing"""
 from .lib import TestBase
 from async.channel import (
-    CallbackChannelWriter, CallbackChannelReader, ChannelWriter, ChannelReader,
-    IteratorReader, mkchannel, ReadOnly
+    CallbackChannelWriter, 
+    CallbackChannelReader, 
+    ChannelWriter, 
+    ChannelReader,
+    IteratorReader, 
+    mkchannel, 
+    ReadOnly
 )
 
 import time

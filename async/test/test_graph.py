@@ -3,10 +3,12 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Channel testing"""
-from .lib import *
-from async.graph import *
+from .lib import TestBase
+from async.graph import (
+        Node,
+        Graph
+    )
 
-import time
 import sys
 
 class TestGraph(TestBase):

@@ -4,19 +4,22 @@
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 # -*- coding: utf-8 -*-
 """Module with threading utilities"""
+
 __docformat__ = "restructuredtext"
 import threading
 import inspect
+import logging
+
 try:
     import queue
 except ImportError:
     import Queue as queue
 
-import sys
 
 __all__ = ('do_terminate_threads', 'terminate_threads', 'TerminatableThread',
             'WorkerThread')
 
+log = logging.getLogger()
 
 #{ Decorators
 
@@ -32,7 +35,7 @@ def do_terminate_threads(whitelist=list()):
         t.stop_and_join()
     # END for each thread
 
-def terminate_threads( func ):
+def terminate_threads(func):
     """Kills all worker threads the method has created by sending the quit signal.
     This takes over in case of an error in the main function"""
     def wrapper(*args, **kwargs):
@@ -65,6 +68,8 @@ class TerminatableThread(threading.Thread):
     def __init__(self):
         super(TerminatableThread, self).__init__()
         self._terminate = False
+        # Use standard python means of non-blocking threads (even though we can tell this one to stop explicitly)
+        self.daemon = True
 
 
     #{ Subclass Interface
@@ -182,7 +187,7 @@ class WorkerThread(TerminatableThread):
                         rval = routine(arg)
                     else:
                         # ignore unknown items
-                        sys.stderr.write("%s: task %s was not understood - terminating\n" % (self.getName(), str(tasktuple)))
+                        log.warn("%s: task %s was not understood - terminating", self.getName(), str(tasktuple))
                         break
                     # END make routine call
                 finally:
@@ -194,7 +199,8 @@ class WorkerThread(TerminatableThread):
             except StopProcessing:
                 break
             except Exception as e:
-                sys.stderr.write("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !\n" % (self.getName(), str(tasktuple), str(e)))
+                log.error("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !",
+                      (self.getName(), str(tasktuple), str(e)))
                 continue    # just continue
             # END routine exception handling
 

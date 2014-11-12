@@ -36,8 +36,10 @@ from .channel import (
 
 import sys
 import weakref
-from time import sleep
+import logging
 from functools import reduce
+
+log = logging.root
 
 
 __all__ = ('PoolReader', 'Pool', 'ThreadPool')
@@ -353,6 +355,12 @@ class Pool(object):
 
         :note: currently NOT threadsafe !"""
         assert size > -1, "Size cannot be negative"
+
+        # Enforce sync operation in py3 - it doesn't work. More information in-code at async.test.lib.py:9
+        if sys.version_info.major > 2:
+            log.debug("py3 compatibility issue: async doesn't work reliably in async mode - enforcing synchronous operation")
+            size = 0
+        # end
 
         # either start new threads, or kill existing ones.
         # If we end up with no threads, we process the remaining chunks on the queue

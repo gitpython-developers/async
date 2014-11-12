@@ -4,18 +4,23 @@
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 # -*- coding: utf-8 -*-
 """ Test thead classes and functions"""
-from .lib import *
-from async.thread import *
+from .lib import TestBase
+from async.thread import (
+        WorkerThread,
+        terminate_threads
+    )
+
 try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
 
+import sys
 import time
 
-class TestWorker(WorkerThread):
+class FixtureWorker(WorkerThread):
     def __init__(self, *args, **kwargs):
-        super(TestWorker, self).__init__(*args, **kwargs)
+        super(FixtureWorker, self).__init__(*args, **kwargs)
         self.reset()
 
     def fun(self, arg):
@@ -37,12 +42,18 @@ class TestThreads(TestBase):
 
     @terminate_threads
     def test_worker_thread(self):
-        worker = TestWorker()
+        worker = FixtureWorker()
         assert isinstance(worker.start(), WorkerThread)
 
         # test different method types
         standalone_func = lambda *args, **kwargs: worker.fun(*args, **kwargs)
-        for function in (TestWorker.fun, worker.fun, standalone_func):
+        functions = (worker.fun, standalone_func,)
+        if sys.version_info < (3, 0):
+            # unbound methods are gone from Python 3, it's not possible to
+            # reconstruct the `self` from it.
+            functions = functions + (FixtureWorker.fun,)
+
+        for function in functions:
             worker.inq.put((function, 1))
             time.sleep(0.01)
             worker.make_assertion()

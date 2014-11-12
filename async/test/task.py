@@ -3,7 +3,10 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Module containing task implementations useful for testing them"""
-from async.task import *
+from async.task import (
+        ChannelThreadTask,
+        IteratorThreadTask
+    )
 
 import threading
 import weakref
@@ -38,8 +41,6 @@ class _TestTaskBase(object):
         """Assert for num process counts (pc) and num function counts (fc)
         :return: self"""
         self.lock.acquire()
-        if self.item_count != fc:
-            print(self.item_count, fc)
         assert self.item_count == fc
         self.lock.release()
 
@@ -55,18 +56,18 @@ class _TestTaskBase(object):
         return self
 
 
-class TestThreadTask(_TestTaskBase, IteratorThreadTask):
+class FixtureThreadTask(_TestTaskBase, IteratorThreadTask):
     pass
 
 
-class TestFailureThreadTask(TestThreadTask):
+class FixtureFailureThreadTask(FixtureThreadTask):
     """Fails after X items"""
     def __init__(self, *args, **kwargs):
         self.fail_after = kwargs.pop('fail_after')
-        super(TestFailureThreadTask, self).__init__(*args, **kwargs)
+        super(FixtureFailureThreadTask, self).__init__(*args, **kwargs)
 
     def do_fun(self, item):
-        item = TestThreadTask.do_fun(self, item)
+        item = FixtureThreadTask.do_fun(self, item)
 
         self.lock.acquire()
         try:
@@ -78,15 +79,15 @@ class TestFailureThreadTask(TestThreadTask):
         return item
 
 
-class TestChannelThreadTask(_TestTaskBase, ChannelThreadTask):
+class FixtureChannelThreadTask(_TestTaskBase, ChannelThreadTask):
     """Apply a transformation on items read from an input channel"""
     def __init__(self, *args, **kwargs):
         self.fail_after = kwargs.pop('fail_after', 0)
-        super(TestChannelThreadTask, self).__init__(*args, **kwargs)
+        super(FixtureChannelThreadTask, self).__init__(*args, **kwargs)
 
     def do_fun(self, item):
         """return tuple(i, i*2)"""
-        item = super(TestChannelThreadTask, self).do_fun(item)
+        item = super(FixtureChannelThreadTask, self).do_fun(item)
 
         # fail after support
         if self.fail_after:
@@ -106,7 +107,7 @@ class TestChannelThreadTask(_TestTaskBase, ChannelThreadTask):
         # END handle tuple
 
 
-class TestPerformanceThreadTask(ChannelThreadTask):
+class FixturePerformanceThreadTask(ChannelThreadTask):
     """Applies no operation to the item, and does not lock, measuring
     the actual throughput of the system"""
 
@@ -114,14 +115,14 @@ class TestPerformanceThreadTask(ChannelThreadTask):
         return item
 
 
-class TestVerifyChannelThreadTask(_TestTaskBase, ChannelThreadTask):
+class FixtureVerifyChannelThreadTask(_TestTaskBase, ChannelThreadTask):
     """An input channel task, which verifies the result of its input channels,
     should be last in the chain.
     Id must be int"""
 
     def do_fun(self, item):
         """return tuple(i, i*2)"""
-        item = super(TestVerifyChannelThreadTask, self).do_fun(item)
+        item = super(FixtureVerifyChannelThreadTask, self).do_fun(item)
 
         # make sure the computation order matches
         assert isinstance(item, tuple), "input was no tuple: %s" % item
@@ -141,7 +142,7 @@ def make_proxy_method(t):
     return lambda item: wt.do_fun(item)
 
 def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_offset=0,
-                    feedercls=TestThreadTask, transformercls=TestChannelThreadTask,
+                    feedercls=FixtureThreadTask, transformercls=FixtureChannelThreadTask,
                     include_verifier=True):
     """Create a task chain of feeder, count transformers and order verifcator
     to the pool p, like t1 -> t2 -> t3
@@ -153,8 +154,6 @@ def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_of
     :param id_offset: defines the id of the first transformation task, all subsequent
         ones will add one
     :return: tuple(list(task1, taskN, ...), list(rc1, rcN, ...))"""
-    nt = p.num_tasks()
-
     feeder = None
     frc = feeder_channel
     if feeder_channel is None:
@@ -183,7 +182,7 @@ def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_of
     # END setup failure
 
     if include_verifier:
-        verifier = TestVerifyChannelThreadTask(inrc, 'verifier', None)
+        verifier = FixtureVerifyChannelThreadTask(inrc, 'verifier', None)
         #verifier.fun = verifier.do_fun
         verifier.fun = make_proxy_method(verifier)
         vrc = p.add_task(verifier)
@@ -194,7 +193,7 @@ def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_of
     # END handle include verifier
     return tasks, rcs
 
-def make_iterator_task(ni, taskcls=TestThreadTask, **kwargs):
+def make_iterator_task(ni, taskcls=FixtureThreadTask, **kwargs):
     """:return: task which yields ni items
     :param taskcls: the actual iterator type to use
     :param kwargs: additional kwargs to be passed to the task"""

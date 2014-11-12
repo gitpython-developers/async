@@ -24,7 +24,7 @@ from time import time
 import threading
 import sys
 
-__all__ = ('Channel', 'SerialChannel', 'Writer', 'ChannelWriter', 'CallbackChannelWriter',
+__all__ = ( 'Channel', 'SerialChannel', 'Writer', 'ChannelWriter', 'CallbackChannelWriter',
             'Reader', 'ChannelReader', 'CallbackChannelReader', 'mkchannel', 'ReadOnly',
             'IteratorReader', 'CallbackReaderMixin', 'CallbackWriterMixin')
 
