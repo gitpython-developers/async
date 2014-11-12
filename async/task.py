@@ -8,7 +8,6 @@ from .channel import IteratorReader
 
 import threading
 import weakref
-import sys
 
 __all__ = ('Task', 'ThreadTaskBase', 'IteratorTaskBase', 
             'IteratorThreadTask', 'ChannelThreadTask')

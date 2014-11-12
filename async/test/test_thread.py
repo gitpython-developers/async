@@ -4,8 +4,12 @@
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 # -*- coding: utf-8 -*-
 """ Test thead classes and functions"""
-from .lib import *
-from async.thread import *
+from .lib import TestBase
+from async.thread import (
+        WorkerThread,
+        terminate_threads
+    )
+
 try:
     from queue import Queue
 except ImportError:

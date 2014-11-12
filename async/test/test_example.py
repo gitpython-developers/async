@@ -3,13 +3,14 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Module containing examples from the documentaiton"""
-from .lib import *
+from .lib import TestBase
 
-from async.pool import *
-from async.task import *
+from async.pool import ThreadPool
+from async.task import (
+        IteratorThreadTask,
+        ChannelThreadTask
+    )
 from async.thread import terminate_threads
-
-
 
 
 class TestExamples(TestBase):

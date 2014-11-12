@@ -3,15 +3,23 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Pool testing"""
-from .lib import *
-from .task import *
+from .lib import TestBase
+from .task import (
+        FixtureThreadTask,
+        FixtureChannelThreadTask,
+        FixtureFailureThreadTask,
+        add_task_chain,        
+        make_iterator_task
+    )
 
-from async.pool import *
+from async.pool import (
+        ThreadPool,
+        PoolReader
+    )
 from async.thread import terminate_threads
 from async.util import cpu_count
 
 import threading
-import weakref
 import time
 import sys
 

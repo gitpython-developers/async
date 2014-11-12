@@ -35,7 +35,7 @@ def do_terminate_threads(whitelist=list()):
         t.stop_and_join()
     # END for each thread
 
-def terminate_threads( func ):
+def terminate_threads(func):
     """Kills all worker threads the method has created by sending the quit signal.
     This takes over in case of an error in the main function"""
     def wrapper(*args, **kwargs):
@@ -68,6 +68,8 @@ class TerminatableThread(threading.Thread):
     def __init__(self):
         super(TerminatableThread, self).__init__()
         self._terminate = False
+        # Use standard python means of non-blocking threads (even though we can tell this one to stop explicitly)
+        self.daemon = True
 
 
     #{ Subclass Interface

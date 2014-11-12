@@ -3,11 +3,14 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Channel testing"""
-from .lib import *
-from .task import *
+from .lib import TestBase
+from .task import (
+        add_task_chain,
+        IteratorThreadTask,
+        FixturePerformanceThreadTask
+    )
 
-from async.pool import *
-from async.thread import terminate_threads
+from async.pool import ThreadPool
 from async.util import cpu_count
 
 import time
@@ -24,8 +27,7 @@ class TestThreadPoolPerformance(TestBase):
         # when adjusting the amount of threads
         pool = ThreadPool(0)
         ni = 1000               # number of items to process
-        print(self.max_threads)
-        for num_threads in range(self.max_threads*2 + 1):
+        for num_threads in range(0, self.max_threads*2 + 1, self.max_threads / 2):
             pool.set_size(num_threads)
             for num_transformers in (1, 5, 10):
                 for read_mode in range(2):

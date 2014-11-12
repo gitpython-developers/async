@@ -3,7 +3,10 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Module containing task implementations useful for testing them"""
-from async.task import *
+from async.task import (
+        ChannelThreadTask,
+        IteratorThreadTask
+    )
 
 import threading
 import weakref
@@ -153,8 +156,6 @@ def add_task_chain(p, ni, count=1, fail_setup=list(), feeder_channel=None, id_of
     :param id_offset: defines the id of the first transformation task, all subsequent
         ones will add one
     :return: tuple(list(task1, taskN, ...), list(rc1, rcN, ...))"""
-    nt = p.num_tasks()
-
     feeder = None
     frc = feeder_channel
     if feeder_channel is None:
