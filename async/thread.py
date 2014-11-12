@@ -177,14 +177,13 @@ class WorkerThread(TerminatableThread):
 
             try:
                 try:
-                    rval = None
                     if inspect.ismethod(routine):
                         if routine.__self__ is None:
-                            rval = routine(self, arg)
+                            routine(self, arg)
                         else:
-                            rval = routine(arg)
+                            routine(arg)
                     elif inspect.isroutine(routine):
-                        rval = routine(arg)
+                        routine(arg)
                     else:
                         # ignore unknown items
                         log.warn("%s: task %s was not understood - terminating", self.getName(), str(tasktuple))
@@ -199,8 +198,8 @@ class WorkerThread(TerminatableThread):
             except StopProcessing:
                 break
             except Exception as e:
-                log.error("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !",
-                      (self.getName(), str(tasktuple), str(e)))
+                log.error("%s: Task raised unhandled exception: %s - this really shouldn't happen !",
+                      (self.getName(), str(e)))
                 continue    # just continue
             # END routine exception handling
 

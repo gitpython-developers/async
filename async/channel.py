@@ -4,15 +4,9 @@
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Contains a queue based channel implementation"""
 try:
-    from queue import (
-        Empty,
-        Full
-    )
+    from queue import Empty
 except ImportError:
-    from Queue import (
-        Empty,
-        Full
-    )
+    from Queue import Empty
 
 from .util import (
         AsyncQueue,
@@ -20,7 +14,6 @@ from .util import (
         ReadOnly
         )
 
-from time import time
 import threading
 import sys
 

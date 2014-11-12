@@ -3,10 +3,7 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Module containing examples from the documentaiton"""
-from .lib import (
-        TestBase,
-        py2
-    )
+from .lib import TestBase
 
 from async.pool import ThreadPool
 from async.task import (
@@ -23,11 +20,6 @@ class TestExamples(TestBase):
         p = ThreadPool()
         # default size is 0, synchronous mode
         assert p.size() == 0
-        
-        # now tasks would be processed asynchronously
-        p.set_size(1)
-        if py2:
-            assert p.size() == 1
         
         # A task performing processing on items from an iterator
         t = IteratorThreadTask(iter(list(range(10))), "power", lambda i: i*i)

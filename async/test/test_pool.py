@@ -22,7 +22,6 @@ from async.pool import (
 from async.thread import terminate_threads
 from async.util import cpu_count
 
-import threading
 import time
 import sys
 
@@ -381,38 +380,10 @@ class TestThreadPool(TestBase):
 
     @terminate_threads
     def test_base(self):
-        max_wait_attempts = 3
-        sleep_time = 0.1
-        for mc in range(max_wait_attempts):
-            # wait for threads to die
-            if len(threading.enumerate()) != 1:
-                time.sleep(sleep_time)
-        # END for each attempt
-        assert len(threading.enumerate()) == 1, "Waited %f s for threads to die, its still alive" % (max_wait_attempts, sleep_time)
-
         p = ThreadPool()
 
-        # default pools have no workers
+        # default pools have no workers - and threading was removed entirely ... 
         assert p.size() == 0
-
-        # increase and decrease the size
-        num_threads = len(threading.enumerate())
-        for i in range(self.max_threads):
-            p.set_size(i)
-            if py2:
-                assert p.size() == i
-                assert len(threading.enumerate()) == num_threads + i
-
-        for i in range(self.max_threads, -1, -1):
-            p.set_size(i)
-            if py2:
-                assert p.size() == i
-
-        assert p.size() == 0
-        # threads should be killed already, but we let them a tiny amount of time
-        # just to be sure
-        time.sleep(0.05)
-        assert len(threading.enumerate()) == num_threads
 
         # SINGLE TASK SERIAL SYNC MODE
         ##############################
@@ -454,45 +425,3 @@ class TestThreadPool(TestBase):
         # DEPENDENT TASKS SYNC MODE
         ###########################
         self._assert_async_dependent_tasks(p)
-
-
-        # SINGLE TASK THREADED ASYNC MODE ( 1 thread )
-        ##############################################
-        # step one gear up - just one thread for now.
-        p.set_size(1)
-        if py2:
-            assert p.size() == 1
-            assert len(threading.enumerate()) == num_threads + 1
-        # deleting the pool stops its threads - just to be sure ;)
-        # Its not synchronized, hence we wait a moment
-        del(p)
-        time.sleep(0.05)
-        if py2:
-            assert len(threading.enumerate()) == num_threads
-
-        p = ThreadPool(1)
-        if py2:
-            assert len(threading.enumerate()) == num_threads + 1
-
-        # here we go
-        self._assert_single_task(p, True)
-
-
-
-        # SINGLE TASK ASYNC MODE ( 2 threads )
-        ######################################
-        # two threads to compete for a single task
-        p.set_size(2)
-        self._assert_single_task(p, True)
-
-        # real stress test-  should be native on every dual-core cpu with 2 hardware
-        # threads per core
-        p.set_size(4)
-        self._assert_single_task(p, True)
-
-
-        # DEPENDENT TASK ASYNC MODE
-        ###########################
-        self._assert_async_dependent_tasks(p)
-
-        sys.stderr.write("Done with everything\n")

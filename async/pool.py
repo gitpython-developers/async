@@ -3,31 +3,12 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Implementation of a thread-pool working with channels"""
-from .thread import (
-        WorkerThread,
-        StopProcessing,
-        )
+from .thread import WorkerThread
 from threading import Lock
 
-from .util import (
-        AsyncQueue,
-        DummyLock
-    )
-
-try:
-    from queue import (
-        Queue,
-        Empty
-        )
-except ImportError:
-    from Queue import (
-        Queue,
-        Empty
-    )
-
+from .util import AsyncQueue
 from .graph import Graph
 from .channel import (
-        mkchannel,
         ChannelWriter,
         Channel,
         SerialChannel,
@@ -357,8 +338,8 @@ class Pool(object):
         assert size > -1, "Size cannot be negative"
 
         # Enforce sync operation in py3 - it doesn't work. More information in-code at async.test.lib.py:9
-        if sys.version_info.major > 2:
-            log.debug("py3 compatibility issue: async doesn't work reliably in async mode - enforcing synchronous operation")
+        if True:
+            log.debug("async: Actual asynchronous operation was disabled as it is slower that way")
             size = 0
         # end
 
