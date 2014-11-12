@@ -27,7 +27,7 @@ class TestThreadPoolPerformance(TestBase):
         # when adjusting the amount of threads
         pool = ThreadPool(0)
         ni = 1000               # number of items to process
-        for num_threads in range(0, self.max_threads*2 + 1, self.max_threads / 2):
+        for num_threads in range(0, self.max_threads*2 + 1, self.max_threads // 2):
             pool.set_size(num_threads)
             for num_transformers in (1, 5, 10):
                 for read_mode in range(2):

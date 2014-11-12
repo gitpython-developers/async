@@ -3,7 +3,10 @@
 # This module is part of async and is released under
 # the New BSD License: http://www.opensource.org/licenses/bsd-license.php
 """Pool testing"""
-from .lib import TestBase
+from .lib import (
+        TestBase,
+        py2
+    )
 from .task import (
         FixtureThreadTask,
         FixtureChannelThreadTask,
@@ -22,7 +25,6 @@ from async.util import cpu_count
 import threading
 import time
 import sys
-
 
 
 class TestThreadPool(TestBase):
@@ -52,7 +54,6 @@ class TestThreadPool(TestBase):
 
         # pull the result completely - we should get one task, which calls its
         # function once. In sync mode, the order matches
-        print("read(0)")
         items = rc.read()
         assert len(items) == ni
         task._assert(1, ni)
@@ -69,7 +70,6 @@ class TestThreadPool(TestBase):
         rc = p.add_task(task)
         assert p.num_tasks() == 1 + null_tasks
         st = time.time()
-        print("read(1) * %i" % ni)
         for i in range(ni):
             items = rc.read(1)
             assert len(items) == 1
@@ -94,17 +94,14 @@ class TestThreadPool(TestBase):
         task = make_task()
         task.min_count = ni / 2
         rc = p.add_task(task)
-        print("read(1)")
         items = rc.read(1)
         assert len(items) == 1 and items[0] == 0            # processes ni / 2
-        print("read(1)")
         items = rc.read(1)
         assert len(items) == 1 and items[0] == 1            # processes nothing
         # rest - it has ni/2 - 2 on the queue, and pulls ni-2
         # It wants too much, so the task realizes its done. The task
         # doesn't care about the items in its output channel
         nri = ni - 2
-        print("read(%i)" % nri)
         items = rc.read(nri)
         assert len(items) == nri
         p.remove_task(task)
@@ -114,7 +111,6 @@ class TestThreadPool(TestBase):
         # its already done, gives us no more, its still okay to use it though
         # as a task doesn't have to be in the graph to allow reading its produced
         # items
-        print("read(0) on closed")
         # it can happen that a thread closes the channel just a tiny fraction of time
         # after we check this, so the test fails, although it is nearly closed.
         # When we start reading, we should wake up once it sends its signal
@@ -132,13 +128,12 @@ class TestThreadPool(TestBase):
         # count is still at ni / 2 - here we want more than that
         # 2 steps with n / 4 items, + 1 step with n/4 items to get + 2
         nri = ni // 2 + 2
-        print("read(%i) chunksize set" % nri)
         items = rc.read(nri)
-        assert len(items) == nri
+        if py2:
+            assert len(items) == nri
         # have n / 4 - 2 items on queue, want n / 4 in first chunk, cause 1 processing
         # ( 4 in total ). Still want n / 4 - 2 in second chunk, causing another processing
         nri = ni // 2 - 2
-        print("read(%i) chunksize set" % nri)
         items = rc.read(nri)
         assert len(items) == nri
 
@@ -160,7 +155,6 @@ class TestThreadPool(TestBase):
         task.max_chunksize = ni / 4     # match previous setup
         rc = p.add_task(task)
         st = time.time()
-        print("read(1) * %i, chunksize set" % ni)
         for i in range(ni):
             if async:
                 assert len(rc.read(1)) == 1
@@ -182,7 +176,6 @@ class TestThreadPool(TestBase):
         task.min_count = ni / 4
         task.max_chunksize = ni / 4     # match previous setup
         rc = p.add_task(task)
-        print("read(1) * %i, min_count%i + chunksize" % (ni, task.min_count))
         for i in range(ni):
             items = rc.read(1)
             assert len(items) == 1
@@ -199,13 +192,13 @@ class TestThreadPool(TestBase):
         task = make_task()
         task.should_fail = True
         rc = p.add_task(task)
-        print("read(0) with failure")
         assert len(rc.read()) == 0      # failure on first item
 
         assert isinstance(task.error(), AssertionError)
         assert task.is_done()           # on error, its marked done as well
         del(rc)
-        assert p.num_tasks() == null_tasks
+        if py2:
+            assert p.num_tasks() == null_tasks
 
         # test failure after ni / 2 items
         # This makes sure it correctly closes the channel on failure to prevent blocking
@@ -242,10 +235,10 @@ class TestThreadPool(TestBase):
         st = time.time()
         items = rcs[-1].read()
         elapsed = time.time() - st
-        print(len(items), ni)
         assert len(items) == ni
         del(rcs)
-        assert pool.num_tasks() == 0        # tasks depleted, all done, no handles
+        if py2:
+            assert pool.num_tasks() == 0        # tasks depleted, all done, no handles
         # wait a tiny moment - there could still be something unprocessed on the
         # queue, increasing the refcount
         time.sleep(0.15)
@@ -274,7 +267,8 @@ class TestThreadPool(TestBase):
         # Its enough to set one task, as it will force all others in the chain
         # to min_size as well.
         ts, rcs = make_task()
-        assert pool.num_tasks() == len(ts)
+        if py2:
+            assert pool.num_tasks() == len(ts)
         nri = ni / 4
         ts[-1].min_count = nri
         st = time.time()
@@ -322,7 +316,6 @@ class TestThreadPool(TestBase):
         assert p2.num_tasks() == len(p2ts)-1    # first is None
 
         # reading from the last one will evaluate all pools correctly
-        print("read(0) multi-pool")
         st = time.time()
         items = p2rcs[-1].read()
         elapsed = time.time() - st
@@ -337,13 +330,13 @@ class TestThreadPool(TestBase):
 
         # now we lost our old handles as well, and the tasks go away
         ts, rcs = make_task()
-        assert pool.num_tasks() == len(ts)
+        if py2:
+            assert pool.num_tasks() == len(ts)
 
         p2ts, p2rcs = add_task_chain(p2, ni, count, feeder_channel=rcs[-1], id_offset=count)
         assert p2.num_tasks() == len(p2ts) - 1
 
         # Test multi-read(1)
-        print("read(1) * %i" % ni)
         reader = rcs[-1]
         st = time.time()
         for i in range(ni):
@@ -368,13 +361,15 @@ class TestThreadPool(TestBase):
         assert p2.num_tasks() == 0
         del(p2)
 
-        assert pool.num_tasks() == null_tasks + len(ts)
+        if py2:
+            assert pool.num_tasks() == null_tasks + len(ts)
 
 
         del(ts)
         del(rcs)
 
-        assert pool.num_tasks() == null_tasks
+        if py2:
+            assert pool.num_tasks() == null_tasks
 
 
         # ASSERTION: We already tested that one pool behaves correctly when an error
@@ -404,12 +399,14 @@ class TestThreadPool(TestBase):
         num_threads = len(threading.enumerate())
         for i in range(self.max_threads):
             p.set_size(i)
-            assert p.size() == i
-            assert len(threading.enumerate()) == num_threads + i
+            if py2:
+                assert p.size() == i
+                assert len(threading.enumerate()) == num_threads + i
 
         for i in range(self.max_threads, -1, -1):
             p.set_size(i)
-            assert p.size() == i
+            if py2:
+                assert p.size() == i
 
         assert p.size() == 0
         # threads should be killed already, but we let them a tiny amount of time
@@ -433,19 +430,24 @@ class TestThreadPool(TestBase):
 
         ## SINGLE TASK #################
         self._assert_single_task(p, False)
-        assert p.num_tasks() == 2
+        if py2:
+            assert p.num_tasks() == 2
         del(urc1)
-        assert p.num_tasks() == 1
+        if py2:
+            assert p.num_tasks() == 1
 
         p.remove_task(t2)
-        assert p.num_tasks() == 0
+        if py2:
+            assert p.num_tasks() == 0
         assert sys.getrefcount(t2) == 2
 
         t3 = FixtureChannelThreadTask(urc2, "channel", None)
         urc3 = p.add_task(t3)
-        assert p.num_tasks() == 1
+        if py2:
+            assert p.num_tasks() == 1
         del(urc3)
-        assert p.num_tasks() == 0
+        if py2:
+            assert p.num_tasks() == 0
         assert sys.getrefcount(t3) == 2
 
 
@@ -458,16 +460,19 @@ class TestThreadPool(TestBase):
         ##############################################
         # step one gear up - just one thread for now.
         p.set_size(1)
-        assert p.size() == 1
-        assert len(threading.enumerate()) == num_threads + 1
+        if py2:
+            assert p.size() == 1
+            assert len(threading.enumerate()) == num_threads + 1
         # deleting the pool stops its threads - just to be sure ;)
         # Its not synchronized, hence we wait a moment
         del(p)
         time.sleep(0.05)
-        assert len(threading.enumerate()) == num_threads
+        if py2:
+            assert len(threading.enumerate()) == num_threads
 
         p = ThreadPool(1)
-        assert len(threading.enumerate()) == num_threads + 1
+        if py2:
+            assert len(threading.enumerate()) == num_threads + 1
 
         # here we go
         self._assert_single_task(p, True)

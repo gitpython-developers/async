@@ -5,21 +5,21 @@
 # -*- coding: utf-8 -*-
 """Module with threading utilities"""
 
-from __future__ import print_function
-
 __docformat__ = "restructuredtext"
 import threading
 import inspect
+import logging
+
 try:
     import queue
 except ImportError:
     import Queue as queue
 
-import sys
 
 __all__ = ('do_terminate_threads', 'terminate_threads', 'TerminatableThread',
             'WorkerThread')
 
+log = logging.getLogger()
 
 #{ Decorators
 
@@ -187,8 +187,7 @@ class WorkerThread(TerminatableThread):
                         rval = routine(arg)
                     else:
                         # ignore unknown items
-                        print("%s: task %s was not understood - terminating" % (self.getName(), str(tasktuple)),
-                              file=sys.stderr)
+                        log.warn("%s: task %s was not understood - terminating", self.getName(), str(tasktuple))
                         break
                     # END make routine call
                 finally:
@@ -200,9 +199,8 @@ class WorkerThread(TerminatableThread):
             except StopProcessing:
                 break
             except Exception as e:
-                print("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !"
-                      % (self.getName(), str(tasktuple), str(e)),
-                      file=sys.stderr)
+                log.error("%s: Task %s raised unhandled exception: %s - this really shouldn't happen !",
+                      (self.getName(), str(tasktuple), str(e)))
                 continue    # just continue
             # END routine exception handling
 

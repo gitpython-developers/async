@@ -41,8 +41,6 @@ class _TestTaskBase(object):
         """Assert for num process counts (pc) and num function counts (fc)
         :return: self"""
         self.lock.acquire()
-        if self.item_count != fc:
-            print(self.item_count, fc)
         assert self.item_count == fc
         self.lock.release()
 
