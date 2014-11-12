@@ -14,7 +14,7 @@ import sys
 # Another reason for choosing to safe time here is that async is a nonsense library thanks to the GIL, which
 # should better be removed from git-python in case there is trouble with it ... . Ideally, this is done
 # in any way ... !
-py2 = sys.version_info.major < 3
+py2 = sys.version_info[0] < 3
 
 class TestBase(unittest.TestCase):
     """Common base for all tests"""
