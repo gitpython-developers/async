@@ -240,7 +240,6 @@ class TestThreadPool(TestBase):
             assert pool.num_tasks() == 0        # tasks depleted, all done, no handles
         # wait a tiny moment - there could still be something unprocessed on the
         # queue, increasing the refcount
-        time.sleep(0.15)
         assert sys.getrefcount(ts[-1]) == 2 # ts + call
         assert sys.getrefcount(ts[0]) == 2  # ts + call
         sys.stderr.write("Dependent Tasks: evaluated %i items of %i dependent in %f s ( %i items / s )\n" % (ni, aic, elapsed, ni / elapsed))
