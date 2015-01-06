@@ -1,0 +1,6 @@
+[run]
+source = git
+
+; to make nosetests happy
+[report]
+include = */async/*
